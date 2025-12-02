@@ -1,0 +1,32 @@
+# Visual Studio user-specific files
+.vs/
+*.vc.db
+*.opendb
+*.db
+*.suo
+*.user
+*.cache
+*.ilk
+*.iobj
+*.ipdb
+*.ipch
+*.pdb
+
+# Build directories
+Debug/
+Release/
+x64/
+out/
+build/
+
+# Binary artifacts
+*.exe
+*.dll
+*.lib
+
+# CMake build folders (if exist later)
+CMakeFiles/
+CMakeCache.txt
+
+# Logs
+*.log
