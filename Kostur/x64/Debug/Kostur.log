@@ -1,0 +1,6 @@
+﻿  Main.cpp
+  Util.cpp
+D:\7.semestar\grafika\github\racunarska-grafika-2D\Source\Util.cpp(1,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  Generating Code...
+D:\7.semestar\grafika\github\racunarska-grafika-2D\Source\Util.cpp(165,1): warning C4715: 'loadImageToCursor': not all control paths return a value
+  Kostur.vcxproj -> D:\7.semestar\grafika\github\racunarska-grafika-2D\x64\Debug\Kostur.exe
