@@ -14,6 +14,15 @@ const int WINDOW_HEIGHT = 800;
 unsigned int quadShader;
 unsigned int VAOquad, VBOquad;
 
+// ELEVATOR
+float floorHeight = 2.0f / 8.0f;                                    //visina sprata
+float elevatorX = 0.95f;                                            //centar rupe za lift 
+float elevatorY = -1.0f + floorHeight / 2.0f + 2 * floorHeight;     //centar base sprata
+float elevatorWidth = 0.08f;
+float elevatorHeight = floorHeight *0.9f;                           //malo manja visina od sprata
+int currentFloor = 2;                                               //inicijalno stanje = prvi sprat
+int targetFloor = 2;                                                //inicijalno da ostane u mestu
+
 
 //Deklaracija svih funkcija
 bool initGLFW();
@@ -25,6 +34,7 @@ void update(float dt);
 void render();
 void formVAO(float* verticles, size_t size, unsigned int& VAO, unsigned int& VBO);
 void drawQuad(unsigned int shader, unsigned int VAO);
+float floorToY(int floor);
 
 
 bool initGLFW()
@@ -83,7 +93,17 @@ void mainLoop()
 
 void update(float dt)
 {
+    float speed = 1.0f;
+    float targetY = floorToY(targetFloor);
 
+    if (elevatorY < targetY) elevatorY += speed * dt;
+    if (elevatorY > targetY) elevatorY -= speed * dt;
+
+    if (fabs(elevatorY - targetY) < 0.01f)
+    {
+        elevatorY = targetY;
+        currentFloor = targetFloor;
+    }
 }
 
 void render() 
@@ -139,6 +159,22 @@ void render()
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.5f, 0.5f, 0.5f, 1.0f);
 
     drawQuad(quadShader, VAOquad);
+
+    //KABINA LIFTA
+    glUniform1f(glGetUniformLocation(quadShader, "uX"), elevatorX);
+    glUniform1f(glGetUniformLocation(quadShader, "uY"), elevatorY);
+    glUniform1f(glGetUniformLocation(quadShader, "uSX"), elevatorWidth);
+    glUniform1f(glGetUniformLocation(quadShader, "uSY"), elevatorHeight);
+
+    glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.9f, 0.9f, 0.9f, 1.0f);
+
+    drawQuad(quadShader, VAOquad);
+
+}
+
+float floorToY(int floor)
+{
+    return -1.0f + floorHeight * (floor + 0.5f);
 }
 
 void formVAO(float* verticles, size_t size, unsigned int& VAO, unsigned int& VBO)
