@@ -23,6 +23,15 @@ float elevatorHeight = floorHeight *0.9f;                           //malo manja
 int currentFloor = 2;                                               //inicijalno stanje = prvi sprat
 int targetFloor = 2;                                                //inicijalno da ostane u mestu
 
+enum DoorState { DOOR_CLOSED, DOOR_OPENING, DOOR_OPEN, DOOR_CLOSING };
+DoorState doorState = DOOR_CLOSED;
+
+float doorTimer = 0.0f; // koliko dugo vrata ostaju otvorena
+float doorPos = 0.0f;   //0=zatvorena, 1=otvorena
+float doorSpeed = 1.0f;
+bool doorExtended = false; //vrata otvorena jos 5sec
+bool justArrived = false; //tek stigao na sprat
+
 
 // DUGMICI
 struct Button {
@@ -187,14 +196,66 @@ void update(float dt)
     float speed = 0.8f;
     float targetY = floorToY(targetFloor);
 
-    if (elevatorY < targetY) elevatorY += speed * dt;
-    if (elevatorY > targetY) elevatorY -= speed * dt;
+    bool doorsClosed = (doorState == DOOR_CLOSED);
 
-    if (fabs(elevatorY - targetY) < 0.01f)
+    //lift se krece samo ako su vrata zatvorena
+
+    if (doorsClosed)
     {
-        elevatorY = targetY;
-        currentFloor = targetFloor;
+        if (elevatorY < targetY) elevatorY += speed * dt;
+        if (elevatorY > targetY) elevatorY -= speed * dt;
+
+        //kad stigne na sprat
+
+        if (fabs(elevatorY - targetY) < 0.01f)
+        {
+            if(!justArrived)
+            { 
+                elevatorY = targetY;
+                currentFloor = targetFloor;
+
+                doorState = DOOR_OPENING;
+                justArrived = true;
+            }
+        }
+        else
+        {
+            justArrived = false;
+        }
     }
+    
+    //Logika otvaranja vrata lifta
+
+    if (doorState == DOOR_OPENING)
+    {
+        doorPos += doorSpeed * dt;
+        if (doorPos >= 1.0f)
+        {
+            doorPos = 1.0f;
+            doorState = DOOR_OPEN;
+            doorTimer = 5.0f;
+        }
+    }
+
+    if (doorState == DOOR_OPEN)
+    {
+        doorTimer -= dt;
+        if (doorTimer <= 0.0f)
+        {
+            doorState = DOOR_CLOSING;
+        }
+    }
+
+    if (doorState == DOOR_CLOSING)
+    {
+        doorPos -= doorSpeed * dt;
+        if (doorPos <= 0.0f)
+        {
+            doorPos = 0.0f;
+            doorState = DOOR_CLOSED;
+        }
+    }
+
 }
 
 
@@ -231,8 +292,28 @@ void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
     if (inInside(btn5, glX, glY)) targetFloor = 6;
     if (inInside(btn6, glX, glY)) targetFloor = 7;
 
-    if (inInside(btnOpen, glX, glY)) std::cout << "OPEN\n";
-    if (inInside(btnClose, glX, glY)) std::cout << "CLOSE\n";
+    if (inInside(btnOpen, glX, glY))
+    {
+        if (doorState == DOOR_OPEN)
+        {
+            doorTimer += 5.0f;
+        }
+
+        if (doorState == DOOR_CLOSED && fabs(elevatorY - floorToY(currentFloor))<0.01f)
+        {
+            doorState = DOOR_OPENING;
+            justArrived = true;
+        }
+    }std::cout << "OPEN\n";
+
+    if (inInside(btnClose, glX, glY))
+    {
+        if (doorState == DOOR_OPEN || doorState == DOOR_OPENING)
+        {
+            doorState = DOOR_CLOSING;
+        }
+    }std::cout << "CLOSE\n";
+
     if (inInside(btnVent, glX, glY)) std::cout << "VENT\n";
     if (inInside(btnStop, glX, glY)) std::cout << "STOP\n";
     
@@ -307,6 +388,36 @@ void render()
     glUniform1f(glGetUniformLocation(quadShader, "uSY"), elevatorHeight);
 
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.9f, 0.9f, 0.9f, 1.0f);
+
+    drawQuad(quadShader, VAOquad);
+
+    //VRATA LIFTA
+
+    float halfDoor = elevatorWidth / 2.0f;
+
+    float leftBase = elevatorX - halfDoor / 2.0f;
+    float rightBase = elevatorX + halfDoor / 2.0f;
+  
+    float leftDoorX = leftBase - doorPos * (halfDoor);
+    float rightDoorX = rightBase + doorPos * (halfDoor);
+
+    //LEVA VRATA
+    glUniform1f(glGetUniformLocation(quadShader, "uX"), leftDoorX);
+    glUniform1f(glGetUniformLocation(quadShader, "uY"), elevatorY);
+    glUniform1f(glGetUniformLocation(quadShader, "uSX"), elevatorWidth / 2.0f);
+    glUniform1f(glGetUniformLocation(quadShader, "uSY"), elevatorHeight);
+
+    glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.75f, 0.75f, 0.75f, 1.0f);
+
+    drawQuad(quadShader, VAOquad);
+
+    //DESNA VRATA
+    glUniform1f(glGetUniformLocation(quadShader, "uX"), rightDoorX);
+    glUniform1f(glGetUniformLocation(quadShader, "uY"), elevatorY);
+    glUniform1f(glGetUniformLocation(quadShader, "uSX"), elevatorWidth / 2.0f);
+    glUniform1f(glGetUniformLocation(quadShader, "uSY"), elevatorHeight);
+
+    glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.75f, 0.75f, 0.75f, 1.0f);
 
     drawQuad(quadShader, VAOquad);
 
