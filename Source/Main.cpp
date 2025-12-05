@@ -9,8 +9,8 @@
 
 //Deklaracija Globalnih
 GLFWwindow* window = nullptr;
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 800;
+int screenWidth = 800;
+int screenHeight = 800;
 unsigned int quadShader;
 unsigned int VAOquad, VBOquad;
 
@@ -22,6 +22,7 @@ float elevatorWidth = 0.08f;
 float elevatorHeight = floorHeight *0.9f;                           //malo manja visina od sprata
 int currentFloor = 2;                                               //inicijalno stanje = prvi sprat
 int targetFloor = 2;                                                //inicijalno da ostane u mestu
+
 
 // DUGMICI
 struct Button {
@@ -64,7 +65,13 @@ bool initGLFW()
 
 bool initWindow()
 {
-    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Kostur", nullptr, nullptr);
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    screenWidth = mode->width;
+    screenHeight = mode->height;
+
+    window = glfwCreateWindow(screenWidth, screenHeight, "Kostur", monitor, NULL);
     if (!window) return false;
 
     glfwMakeContextCurrent(window);
@@ -80,7 +87,7 @@ bool initGLEW()
 }
 
 void initOpenGLState() {
-    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glViewport(0, 0, screenWidth, screenHeight);
     glClearColor(0.2f, 0.8f, 0.6f, 1.0f);
 
     glEnable(GL_BLEND);
@@ -156,6 +163,10 @@ void mainLoop()
     double lastTime = glfwGetTime();
     while (!glfwWindowShouldClose(window))
     {
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+
+
         double currentTime = glfwGetTime();
         float dt = float(currentTime - lastTime);
         lastTime = currentTime;
@@ -165,13 +176,15 @@ void mainLoop()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        while(glfwGetTime() - currentTime < 1.0 / 75.0){}
     }
 
 }
 
 void update(float dt)
 {
-    float speed = 1.0f;
+    float speed = 0.8f;
     float targetY = floorToY(targetFloor);
 
     if (elevatorY < targetY) elevatorY += speed * dt;
@@ -187,8 +200,8 @@ void update(float dt)
 
 void windowToOpenGL(double mx, double my, float& glx, float& gly)
 {
-    glx = float((mx / WINDOW_WIDTH) * 2.0 - 1.0);
-    gly = float(1.0-(my /WINDOW_HEIGHT) * 2.0);
+    glx = float((mx / screenWidth) * 2.0 - 1.0);
+    gly = float(1.0-(my /screenHeight) * 2.0);
 }
 
 
