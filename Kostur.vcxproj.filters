@@ -35,10 +35,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="quad.frag">
+    <None Include="quad.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
-    <None Include="quad.vert">
+    <None Include="quad.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

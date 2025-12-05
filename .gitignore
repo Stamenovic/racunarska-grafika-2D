@@ -11,13 +11,22 @@
 *.ipdb
 *.ipch
 *.pdb
+*.idb
+*.obj
 
 # Build directories
 Debug/
 Release/
 x64/
+Kostur/x64/
 out/
 build/
+
+# VS project intermediates
+*.vcxproj.user
+*.aps
+*.opendb
+*.ipch
 
 # Binary artifacts
 *.exe
@@ -30,3 +39,4 @@ CMakeCache.txt
 
 # Logs
 *.log
+*.tlog

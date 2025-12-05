@@ -1,2 +1,0 @@
-C:\Users\Vuk\Documents\Vasa\Grafika\RG_V4\Kostur\x64\Debug\glew32.dll
-D:\7.semestar\grafika\github\racunarska-grafika-2D\x64\Debug\glew32.dll
