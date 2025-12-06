@@ -17,7 +17,7 @@ unsigned int VAOquad, VBOquad;
 // LIFT
 float floorHeight = 2.0f / 8.0f;                                    //visina sprata
 float elevatorX = 0.95f;                                            //centar rupe za lift 
-float elevatorY = -1.0f + floorHeight / 2.0f + 2 * floorHeight;     //centar base sprata
+float elevatorY = -1.0f + floorHeight / 2.0f + 2 * floorHeight;     
 float elevatorWidth = 0.08f;
 float elevatorHeight = floorHeight *0.9f;                           //malo manja visina od sprata
 int currentFloor = 2;                                               //inicijalno stanje = prvi sprat
@@ -31,6 +31,17 @@ float doorPos = 0.0f;   //0=zatvorena, 1=otvorena
 float doorSpeed = 1.0f;
 bool doorExtended = false; //vrata otvorena jos 5sec
 bool justArrived = false; //tek stigao na sprat
+
+
+//OSOBA
+float personX = 0.25f; 
+float personY;
+float personWidth = 0.05f;
+float personHeight = 0.12f;
+
+bool personInElevator = false;  
+bool personCalling = false; //da li je osoba pozvala lift
+int personFloor = 1;
 
 
 // DUGMICI
@@ -127,6 +138,7 @@ void initOpenGLState() {
     btnVent = { leftX, startY - i * gap, btnW, btnH };
     btnStop = { rightX, startY - i * gap, btnW, btnH }; i++;;
     
+    personY = floorToY(1);
 
 }
 
@@ -216,6 +228,9 @@ void update(float dt)
 
                 doorState = DOOR_OPENING;
                 justArrived = true;
+
+                if (personCalling && currentFloor == personFloor)
+                    personCalling = false;
             }
         }
         else
@@ -253,6 +268,36 @@ void update(float dt)
         {
             doorPos = 0.0f;
             doorState = DOOR_CLOSED;
+        }
+    }
+
+    //kretanje osobe
+
+    float walkSpeed = 0.6f;
+    if (!personInElevator)
+    {
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            personX -= walkSpeed * dt;
+
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            personX += walkSpeed * dt;
+
+        if (personX < 0.02f  )
+            personX = 0.02f  ;
+
+        float liftLeftEdge = elevatorX - elevatorWidth / 2.0f;
+        if (personX + personWidth / 2.0f > liftLeftEdge)
+            personX = liftLeftEdge - personWidth / 2.0f;
+    }
+
+    //poziv lifta
+
+    if (!personInElevator)
+    {
+        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+        {
+            personCalling = true;
+            targetFloor = personFloor;
         }
     }
 
@@ -420,6 +465,20 @@ void render()
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.75f, 0.75f, 0.75f, 1.0f);
 
     drawQuad(quadShader, VAOquad);
+
+    //OSOBA
+
+    if (!personInElevator)
+    {
+        glUniform1f(glGetUniformLocation(quadShader, "uX"), personX);
+        glUniform1f(glGetUniformLocation(quadShader, "uY"), personY);
+        glUniform1f(glGetUniformLocation(quadShader, "uSX"), personWidth / 2.0f);
+        glUniform1f(glGetUniformLocation(quadShader, "uSY"), personHeight);
+
+        glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.9f , 0.9f, 0.20f, 1.0f);
+
+        drawQuad(quadShader, VAOquad);
+    }
 
 }
 
