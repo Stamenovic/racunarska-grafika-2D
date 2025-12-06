@@ -42,6 +42,8 @@ float personHeight = 0.12f;
 bool personInElevator = false;  
 bool personCalling = false; //da li je osoba pozvala lift
 int personFloor = 1;
+float personOffsetX = -0.02f; //koliko udje u lift
+float exitAreaOffsetX = 0.03f; // koliko izadje iz lifta
 
 
 // DUGMICI
@@ -272,6 +274,7 @@ void update(float dt)
     }
 
     //kretanje osobe
+    float liftLeftEdge = elevatorX - elevatorWidth / 2.0f;
 
     float walkSpeed = 0.6f;
     if (!personInElevator)
@@ -285,21 +288,50 @@ void update(float dt)
         if (personX < 0.02f  )
             personX = 0.02f  ;
 
-        float liftLeftEdge = elevatorX - elevatorWidth / 2.0f;
-        if (personX + personWidth / 2.0f > liftLeftEdge)
-            personX = liftLeftEdge - personWidth / 2.0f;
+        if (!personInElevator && doorState != DOOR_OPEN)
+        {
+            if (personX + personWidth / 2.0f > liftLeftEdge)
+                personX = liftLeftEdge - personWidth / 2.0f;
+        }
     }
 
     //poziv lifta
 
     if (!personInElevator)
     {
-        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+        bool toutchingLift = (personX + personWidth / 2.0f >= liftLeftEdge - 0.005f);
+
+        if (toutchingLift && glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
         {
             personCalling = true;
             targetFloor = personFloor;
+            std::cout << "Person CALLED the elevator\n";
         }
     }
+
+    //ulazak u lift
+
+    if (!personInElevator && doorState == DOOR_OPEN)
+    {
+        if (currentFloor == personFloor)
+        {
+            if (personX + personWidth / 2.0f > liftLeftEdge)
+            {
+                personInElevator = true;
+
+                personX = elevatorX + personOffsetX;
+                personY = elevatorY;
+
+                std::cout << "Person ENTERED the elevator/n";
+            }
+        }
+    }
+
+    if (personInElevator)
+    {
+        personY = elevatorY;
+    }
+
 
 }
 
@@ -427,6 +459,7 @@ void render()
     drawQuad(quadShader, VAOquad);
 
     //KABINA LIFTA
+
     glUniform1f(glGetUniformLocation(quadShader, "uX"), elevatorX);
     glUniform1f(glGetUniformLocation(quadShader, "uY"), elevatorY);
     glUniform1f(glGetUniformLocation(quadShader, "uSX"), elevatorWidth);
@@ -447,6 +480,7 @@ void render()
     float rightDoorX = rightBase + doorPos * (halfDoor);
 
     //LEVA VRATA
+
     glUniform1f(glGetUniformLocation(quadShader, "uX"), leftDoorX);
     glUniform1f(glGetUniformLocation(quadShader, "uY"), elevatorY);
     glUniform1f(glGetUniformLocation(quadShader, "uSX"), elevatorWidth / 2.0f);
@@ -457,6 +491,7 @@ void render()
     drawQuad(quadShader, VAOquad);
 
     //DESNA VRATA
+
     glUniform1f(glGetUniformLocation(quadShader, "uX"), rightDoorX);
     glUniform1f(glGetUniformLocation(quadShader, "uY"), elevatorY);
     glUniform1f(glGetUniformLocation(quadShader, "uSX"), elevatorWidth / 2.0f);
@@ -466,19 +501,19 @@ void render()
 
     drawQuad(quadShader, VAOquad);
 
-    //OSOBA
+    //OSOBA 
 
-    if (!personInElevator)
-    {
         glUniform1f(glGetUniformLocation(quadShader, "uX"), personX);
         glUniform1f(glGetUniformLocation(quadShader, "uY"), personY);
-        glUniform1f(glGetUniformLocation(quadShader, "uSX"), personWidth / 2.0f);
+        glUniform1f(glGetUniformLocation(quadShader, "uSX"), personWidth /2.0f);
         glUniform1f(glGetUniformLocation(quadShader, "uSY"), personHeight);
 
         glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.9f , 0.9f, 0.20f, 1.0f);
 
         drawQuad(quadShader, VAOquad);
-    }
+    
+
+   
 
 }
 
