@@ -22,6 +22,7 @@ float elevatorWidth = 0.08f;
 float elevatorHeight = floorHeight *0.9f;                           //malo manja visina od sprata
 int currentFloor = 2;                                               //inicijalno stanje = prvi sprat
 int targetFloor = 2;                                                //inicijalno da ostane u mestu
+bool floorRequested[8] = { false };                                 //osoba pritisnula dugmice
 
 enum DoorState { DOOR_CLOSED, DOOR_OPENING, DOOR_OPEN, DOOR_CLOSING };
 DoorState doorState = DOOR_CLOSED;
@@ -60,6 +61,7 @@ bool initGLFW();
 bool initWindow();
 bool initGLEW();
 void initOpenGLState();
+void renderFloorButtons(const Button& b, bool active, unsigned int shader, unsigned int VAO);
 void renderButton(const Button& b, float r, float g, float bColor, unsigned int shader, unsigned int VAO);
 void renderButtons(unsigned int shader, unsigned int VAO);
 void mainLoop();
@@ -145,6 +147,23 @@ void initOpenGLState() {
 
 }
 
+void renderFloorButtons(const Button& b, bool active, unsigned int shader, unsigned int VAO) {
+
+    if (active)
+    {
+        glUniform1f(glGetUniformLocation(shader, "uX"), b.x);
+        glUniform1f(glGetUniformLocation(shader, "uY"), b.y);
+        glUniform1f(glGetUniformLocation(shader, "uSX"), b.w * 1.1f);
+        glUniform1f(glGetUniformLocation(shader, "uSY"), b.h * 1.1f);
+
+        glUniform4f(glGetUniformLocation(shader, "uColor"), 1.0f, 1.0f, 1.0f, 1.0f);
+        drawQuad(shader, VAO);
+    }
+
+    float cr = 0.85f, cg = 0.85f, cb = 0.90f;
+    renderButton(b, cr, cg, cb, shader, VAO);
+}
+
 void renderButton(const Button& b, float r, float g, float bColor, unsigned int shader, unsigned int VAO)
 {
     glUniform1f(glGetUniformLocation(shader, "uX"), b.x);
@@ -162,14 +181,14 @@ void renderButtons(unsigned int shader, unsigned int VAO)
 {
     float cr = 0.85f, cg = 0.85f, cb = 0.90f;
 
-    renderButton(btnSU, cr, cg, cb, shader, VAO);
-    renderButton(btnPR, cr, cg, cb, shader, VAO);
-    renderButton(btn1, cr, cg, cb, shader, VAO);
-    renderButton(btn2, cr, cg, cb, shader, VAO);
-    renderButton(btn3, cr, cg, cb, shader, VAO);
-    renderButton(btn4, cr, cg, cb, shader, VAO);
-    renderButton(btn5, cr, cg, cb, shader, VAO);
-    renderButton(btn6, cr, cg, cb, shader, VAO);
+    renderFloorButtons(btnSU, floorRequested[0], shader, VAO);
+    renderFloorButtons(btnPR, floorRequested[1], shader, VAO);
+    renderFloorButtons(btn1, floorRequested[2], shader, VAO);
+    renderFloorButtons(btn2, floorRequested[3], shader, VAO);
+    renderFloorButtons(btn3, floorRequested[4], shader, VAO);
+    renderFloorButtons(btn4, floorRequested[5], shader, VAO);
+    renderFloorButtons(btn5, floorRequested[6], shader, VAO);
+    renderFloorButtons(btn6, floorRequested[7], shader, VAO);
 
     float cr2 = 0.85f, cg2 = 0.75f, cb2 = 0.75f;
 
@@ -209,8 +228,29 @@ void mainLoop()
 void update(float dt)
 {
     float speed = 0.8f;
+
+    int nextRequestedFloor = -1;
+    for (int i = 0; i < 8; i++)
+    {
+        if (floorRequested[i])
+        {
+            nextRequestedFloor = i;
+            break;
+        }
+    }
+
+    if (nextRequestedFloor == -1)
+    {
+        targetFloor = currentFloor;
+    }
+    else
+    {
+        targetFloor = nextRequestedFloor;
+    }
+
     float targetY = floorToY(targetFloor);
     personFloor = yToFloor(personY);
+
 
     bool doorsClosed = (doorState == DOOR_CLOSED);
 
@@ -229,6 +269,11 @@ void update(float dt)
             { 
                 elevatorY = targetY;
                 currentFloor = targetFloor;
+
+                if (currentFloor >= 0 && currentFloor < 8) 
+                {
+                    floorRequested[currentFloor] = false;
+                }
 
                 doorState = DOOR_OPENING;
                 justArrived = true;
@@ -310,7 +355,15 @@ void update(float dt)
         {
             personCalling = true;
             targetFloor = personFloor;
+            floorRequested[personFloor] = true;
             std::cout << "Person CALLED the elevator\n";
+
+            if (currentFloor == personFloor && doorState == DOOR_CLOSED)
+            {
+                doorState = DOOR_OPENING;
+                justArrived = true;
+                std::cout << "Elevator already here, opening doors\n";
+            }
         }
     }
 
@@ -398,20 +451,26 @@ void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
     if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS)
         return;
 
+    if (!personInElevator)
+    {
+        std::cout << "Buttons inactiv - person not in elevator\n";
+        return;
+    }
+
     double mx, my;
     glfwGetCursorPos(window, &mx, &my);
 
     float glX, glY;
     windowToOpenGL(mx, my, glX, glY);
 
-    if (inInside(btnSU, glX, glY)) targetFloor = 0;
-    if (inInside(btnPR, glX, glY)) targetFloor = 1;
-    if (inInside(btn1, glX, glY)) targetFloor = 2;
-    if (inInside(btn2, glX, glY)) targetFloor = 3;
-    if (inInside(btn3, glX, glY)) targetFloor = 4;
-    if (inInside(btn4, glX, glY)) targetFloor = 5;
-    if (inInside(btn5, glX, glY)) targetFloor = 6;
-    if (inInside(btn6, glX, glY)) targetFloor = 7;
+    if (inInside(btnSU, glX, glY)) { floorRequested[0] = true; };
+    if (inInside(btnPR, glX, glY)) { floorRequested[1] = true; };
+    if (inInside(btn1, glX, glY)) { floorRequested[2] = true; };
+    if (inInside(btn2, glX, glY)) { floorRequested[3] = true; };
+    if (inInside(btn3, glX, glY)) { floorRequested[4] = true; };
+    if (inInside(btn4, glX, glY)) { floorRequested[5] = true; };
+    if (inInside(btn5, glX, glY)) { floorRequested[6] = true; };
+    if (inInside(btn6, glX, glY)) { floorRequested[7] = true; };
 
     if (inInside(btnOpen, glX, glY))
     {
