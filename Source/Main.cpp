@@ -32,6 +32,7 @@ float doorPos = 0.0f;   //0=zatvorena, 1=otvorena
 float doorSpeed = 1.0f;
 bool doorExtended = false; //vrata otvorena jos 5sec
 bool justArrived = false; //tek stigao na sprat
+bool emergencyStop = false; //STOP dugme 
 
 
 //OSOBA
@@ -74,7 +75,7 @@ void formVAO(float* verticles, size_t size, unsigned int& VAO, unsigned int& VBO
 void drawQuad(unsigned int shader, unsigned int VAO);
 float floorToY(int floor);
 int yToFloor(float personY);
-void mouseClickCallback(GLFWwindow* window, int button, int action, int mods);
+
 
 
 bool initGLFW()
@@ -228,6 +229,16 @@ void mainLoop()
 void update(float dt)
 {
     float speed = 0.8f;
+    
+    if (emergencyStop) //STOP dugme aktivirano
+    {
+        if (personInElevator)
+        {
+            personY = (elevatorY - elevatorHeight / 2.0f) + personHeight / 2.0f;
+        }
+        return;
+    }
+
 
     int nextRequestedFloor = -1;
     for (int i = 0; i < 8; i++)
@@ -495,8 +506,11 @@ void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
     }std::cout << "CLOSE\n";
 
     if (inInside(btnVent, glX, glY)) std::cout << "VENT\n";
-    if (inInside(btnStop, glX, glY)) std::cout << "STOP\n";
-    
+    if (inInside(btnStop, glX, glY))
+    {
+        emergencyStop = !emergencyStop;
+        std::cout << "STOP: " << emergencyStop << "\n";
+    }
 
 
 
