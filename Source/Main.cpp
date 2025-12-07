@@ -42,8 +42,8 @@ float personHeight = 0.12f;
 bool personInElevator = false;  
 bool personCalling = false; //da li je osoba pozvala lift
 int personFloor = 1;
-float personOffsetX = -0.02f; //koliko udje u lift
-float exitAreaOffsetX = 0.03f; // koliko izadje iz lifta
+float personOffsetX = 0.03f; //koliko udje u lift
+float exitAreaOffsetX = 0.04f; // granica za izlazak
 
 
 // DUGMICI
@@ -71,6 +71,7 @@ void render();
 void formVAO(float* verticles, size_t size, unsigned int& VAO, unsigned int& VBO);
 void drawQuad(unsigned int shader, unsigned int VAO);
 float floorToY(int floor);
+int yToFloor(float personY);
 void mouseClickCallback(GLFWwindow* window, int button, int action, int mods);
 
 
@@ -209,6 +210,7 @@ void update(float dt)
 {
     float speed = 0.8f;
     float targetY = floorToY(targetFloor);
+    personFloor = yToFloor(personY);
 
     bool doorsClosed = (doorState == DOOR_CLOSED);
 
@@ -274,9 +276,10 @@ void update(float dt)
     }
 
     //kretanje osobe
-    float liftLeftEdge = elevatorX - elevatorWidth / 2.0f;
+    float liftLeftEdge = elevatorX - (elevatorWidth / 2.0f);
 
     float walkSpeed = 0.6f;
+
     if (!personInElevator)
     {
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -288,7 +291,9 @@ void update(float dt)
         if (personX < 0.02f  )
             personX = 0.02f  ;
 
-        if (!personInElevator && doorState != DOOR_OPEN)
+        bool sameFloor = (personFloor == currentFloor);
+
+        if (!sameFloor || doorState != DOOR_OPEN)
         {
             if (personX + personWidth / 2.0f > liftLeftEdge)
                 personX = liftLeftEdge - personWidth / 2.0f;
@@ -299,7 +304,7 @@ void update(float dt)
 
     if (!personInElevator)
     {
-        bool toutchingLift = (personX + personWidth / 2.0f >= liftLeftEdge - 0.005f);
+        bool toutchingLift = (personX + personWidth / 2.0f >= liftLeftEdge - 0.01f);
 
         if (toutchingLift && glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
         {
@@ -309,27 +314,66 @@ void update(float dt)
         }
     }
 
+
     //ulazak u lift
 
-    if (!personInElevator && doorState == DOOR_OPEN)
+    if (!personInElevator && doorState == DOOR_OPEN && currentFloor == personFloor)
     {
-        if (currentFloor == personFloor)
-        {
-            if (personX + personWidth / 2.0f > liftLeftEdge)
+            if (personX + personWidth / 2.0f >= liftLeftEdge -0.05f)
             {
                 personInElevator = true;
 
                 personX = elevatorX + personOffsetX;
                 personY = elevatorY;
-
-                std::cout << "Person ENTERED the elevator/n";
+                personFloor = currentFloor;
+               // personY = (elevatorY - elevatorHeight / 2.0f) + personHeight / 2.0f;
+                std::cout << "Person ENTERED the elevator\n";
             }
-        }
     }
 
     if (personInElevator)
     {
-        personY = elevatorY;
+        
+        personY = (elevatorY - elevatorHeight / 2.0f) + personHeight / 2.0f;
+        float exitThreshold = liftLeftEdge + exitAreaOffsetX;
+
+        if(doorState == DOOR_OPEN && currentFloor == personFloor)
+        {
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                personX -= walkSpeed * dt;
+
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                personX += walkSpeed * dt;
+
+
+            if (personX + personWidth / 2.0f > 1.0f)
+                personX = 1.0f - personWidth / 2.0f;
+           
+            if (personX < exitThreshold)
+            {
+                personInElevator = false;
+                personX = liftLeftEdge - 0.08f;
+                
+
+                std::cout << "Person EXITED the elevator\n";
+            }
+        }
+        else if (doorState != DOOR_OPEN) 
+        {
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+                personX -= walkSpeed * dt;
+
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                personX += walkSpeed * dt;
+
+            if (personX + personWidth / 2.0f > 1.0f)
+                personX = 1.0f - personWidth / 2.0f;
+
+            if (personX < liftLeftEdge)
+                personX = liftLeftEdge + (personWidth / 2.0f);
+        }
+
+        
     }
 
 
@@ -520,6 +564,12 @@ void render()
 float floorToY(int floor)
 {
     return -1.0f + floorHeight * (floor + 0.5f);
+}
+
+int yToFloor(float personY)
+{
+    float f = (personY + 1.0f) / floorHeight - 0.05f;
+    return (int)round(f);
 }
 
 void formVAO(float* verticles, size_t size, unsigned int& VAO, unsigned int& VBO)
