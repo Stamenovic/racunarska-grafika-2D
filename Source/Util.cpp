@@ -134,6 +134,26 @@ unsigned loadImageToTexture(const char* filePath) {
     }
 }
 
+unsigned char* resizeImage(unsigned char* data, int w, int h, int channels, int newW, int newH)
+{
+    unsigned char* resized = new unsigned char[newW * newH * channels];
+
+    for (int y = 0; y < newH; y++)
+    {
+        for (int x = 0; x < newW; x++)
+        {
+            int srcX = x * w / newW;
+            int srcY = y * h / newH;
+
+            for (int c = 0; c < channels; c++)
+            {
+                resized[(y * newW + x) * channels + c] = data[(srcY * w + srcX) * channels + c];
+            }
+        }
+    }
+    return resized;
+}
+
 GLFWcursor* loadImageToCursor(const char* filePath) {
     int TextureWidth;
     int TextureHeight;
@@ -143,15 +163,19 @@ GLFWcursor* loadImageToCursor(const char* filePath) {
 
     if (ImageData != NULL)
     {
+
+        int newSize = 64;
+        unsigned char* resized = resizeImage(ImageData, TextureWidth, TextureHeight, TextureChannels, newSize, newSize);
+
         GLFWimage image;
-        image.width = TextureWidth;
-        image.height = TextureHeight;
-        image.pixels = ImageData;
+        image.width = newSize;
+        image.height = newSize;
+        image.pixels = resized;
 
         // Tacka na površini slike kursora koja se ponaša kao hitboks, moze se menjati po potrebi
         // Trenutno je gornji levi ugao, odnosno na 20% visine i 20% sirine slike kursora
-        int hotspotX = TextureWidth / 5;
-        int hotspotY = TextureHeight / 5;
+        int hotspotX = newSize / 5;
+        int hotspotY = 5;
 
         GLFWcursor* cursor = glfwCreateCursor(&image, hotspotX, hotspotY);
         stbi_image_free(ImageData);

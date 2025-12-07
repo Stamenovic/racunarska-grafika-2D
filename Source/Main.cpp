@@ -7,6 +7,13 @@
 #include <iostream>
 #include "../Header/Util.h"
 
+//VENT- cursor
+GLFWcursor* cursorBlack = nullptr;
+GLFWcursor* cursorColor = nullptr;
+
+bool ventilationON = false;
+
+
 //Deklaracija Globalnih
 GLFWwindow* window = nullptr;
 int screenWidth = 800;
@@ -112,6 +119,8 @@ bool initGLEW()
     return true;
 }
 
+
+
 void initOpenGLState() {
     glViewport(0, 0, screenWidth, screenHeight);
     glClearColor(0.2f, 0.8f, 0.6f, 1.0f);
@@ -147,6 +156,8 @@ void initOpenGLState() {
     personY = floorToY(1);
 
 }
+
+
 
 void renderFloorButtons(const Button& b, bool active, unsigned int shader, unsigned int VAO) {
 
@@ -291,6 +302,12 @@ void update(float dt)
 
                 if (personCalling && currentFloor == personFloor)
                     personCalling = false;
+
+                if (ventilationON)
+                {
+                    ventilationON = false;
+                    glfwSetCursor(window, cursorBlack);
+                }
             }
         }
         else
@@ -505,7 +522,18 @@ void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
         }
     }std::cout << "CLOSE\n";
 
-    if (inInside(btnVent, glX, glY)) std::cout << "VENT\n";
+    if (inInside(btnVent, glX, glY))
+    {
+        ventilationON = !ventilationON;
+
+        if (ventilationON)
+            glfwSetCursor(window, cursorColor);
+        else
+            glfwSetCursor(window, cursorBlack);
+
+        std::cout << "VENT switched: "<< ventilationON<<"\n";
+    }
+
     if (inInside(btnStop, glX, glY))
     {
         emergencyStop = !emergencyStop;
@@ -679,6 +707,10 @@ int main()
 
     if (!initGLEW()) return endProgram("GLEW fail.");
 
+
+    cursorBlack = loadImageToCursor("D:/7.semestar/grafika/github/racunarska-grafika-2D/Resources/cursor_black.png");
+    cursorColor = loadImageToCursor("D:/7.semestar/grafika/github/racunarska-grafika-2D/Resources/cursor_color.png");
+    glfwSetCursor(window, cursorBlack);
 
 
     float quadVertices[] = {

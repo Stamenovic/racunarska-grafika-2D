@@ -42,4 +42,12 @@
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\cursor_black.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\cursor_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
