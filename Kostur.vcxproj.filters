@@ -41,6 +41,8 @@
     <None Include="quad.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="Source\Shaders\quad.frag" />
+    <None Include="Source\Shaders\quad.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\cursor_black.png">
