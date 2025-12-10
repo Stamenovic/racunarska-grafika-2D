@@ -386,11 +386,17 @@ void update(float dt)
             floorRequested[personFloor] = true;
             std::cout << "Person CALLED the elevator\n";
 
-            if (currentFloor == personFloor && doorState == DOOR_CLOSED)
+            if (currentFloor == personFloor)
             {
-                doorState = DOOR_OPENING;
-                justArrived = true;
-                std::cout << "Elevator already here, opening doors\n";
+                if(doorState == DOOR_CLOSED)
+                {
+                    doorState = DOOR_OPENING;
+                    justArrived = true;
+                    std::cout << "Elevator already here, opening doors\n";
+                }
+
+                floorRequested[personFloor] = false;
+                return;
             }
         }
     }
@@ -407,7 +413,7 @@ void update(float dt)
                 personX = elevatorX + personOffsetX;
                 personY = elevatorY;
                 personFloor = currentFloor;
-               // personY = (elevatorY - elevatorHeight / 2.0f) + personHeight / 2.0f;
+               
                 std::cout << "Person ENTERED the elevator\n";
             }
     }
@@ -474,6 +480,7 @@ bool inInside(const Button& b, float x, float y)
         y > b.y - b.h / 2 && y < b.y + b.h / 2;
 }
 
+
 void mouseClickCallback(GLFWwindow* window, int button, int action, int mods) 
 {
     if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS)
@@ -491,14 +498,32 @@ void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
     float glX, glY;
     windowToOpenGL(mx, my, glX, glY);
 
-    if (inInside(btnSU, glX, glY)) { floorRequested[0] = true; };
-    if (inInside(btnPR, glX, glY)) { floorRequested[1] = true; };
-    if (inInside(btn1, glX, glY)) { floorRequested[2] = true; };
-    if (inInside(btn2, glX, glY)) { floorRequested[3] = true; };
-    if (inInside(btn3, glX, glY)) { floorRequested[4] = true; };
-    if (inInside(btn4, glX, glY)) { floorRequested[5] = true; };
-    if (inInside(btn5, glX, glY)) { floorRequested[6] = true; };
-    if (inInside(btn6, glX, glY)) { floorRequested[7] = true; };
+    int pressed = -1;
+
+    if (inInside(btnSU, glX, glY)) pressed = 0;
+    if (inInside(btnPR, glX, glY)) pressed = 1;
+    if (inInside(btn1, glX, glY)) pressed = 2;
+    if (inInside(btn2, glX, glY)) pressed = 3;
+    if (inInside(btn3, glX, glY)) pressed = 4;
+    if (inInside(btn4, glX, glY)) pressed = 5;
+    if (inInside(btn5, glX, glY)) pressed = 6;
+    if (inInside(btn6, glX, glY)) pressed = 7;
+
+    if (pressed != -1)
+    {
+        if(pressed == currentFloor)
+        {
+            if (doorState == DOOR_CLOSED)
+            {
+                doorState = DOOR_OPENING;
+                justArrived = true;
+            }
+            floorRequested[pressed] = false;
+            return;
+        }
+        floorRequested[pressed] = true;
+        return;
+    }
 
     if (inInside(btnOpen, glX, glY))
     {
@@ -543,6 +568,7 @@ void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
 
 
 }
+
 
 void render() 
 {
