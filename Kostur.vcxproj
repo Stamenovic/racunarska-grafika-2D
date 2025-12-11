@@ -132,13 +132,27 @@
     <ClInclude Include="Header\Util.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="quad.frag" />
-    <None Include="quad.vert" />
     <None Include="packages.config" />
+    <None Include="Source\Shaders\quad.frag" />
+    <None Include="Source\Shaders\quad.vert" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\0.png" />
+    <Image Include="Resources\1.png" />
+    <Image Include="Resources\2.png" />
+    <Image Include="Resources\3.png" />
+    <Image Include="Resources\4.png" />
+    <Image Include="Resources\5.png" />
+    <Image Include="Resources\6.png" />
+    <Image Include="Resources\close.png" />
     <Image Include="Resources\cursor_black.png" />
     <Image Include="Resources\cursor_color.png" />
+    <Image Include="Resources\open.png" />
+    <Image Include="Resources\PR.png" />
+    <Image Include="Resources\sig.png" />
+    <Image Include="Resources\stop.png" />
+    <Image Include="Resources\SU.png" />
+    <Image Include="Resources\vent.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

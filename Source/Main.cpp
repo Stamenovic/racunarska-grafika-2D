@@ -43,10 +43,10 @@ bool emergencyStop = false; //STOP dugme
 
 
 //OSOBA
-float personX = 0.25f; 
-float personY;
 float personWidth = 0.05f;
 float personHeight = 0.12f;
+float personX = 0.25f;
+float personY;
 
 bool personInElevator = false;  
 bool personCalling = false; //da li je osoba pozvala lift
@@ -63,13 +63,19 @@ struct Button {
 Button btnSU, btnPR, btn1, btn2, btn3, btn4, btn5, btn6;
 Button btnOpen, btnClose, btnStop, btnVent;
 
+unsigned int texFloorButtons[8];
+unsigned int texBtnOpen, texBtnClose, texBtnStop, texBtnVent;
+
+unsigned int texSignature;
+
 
 //Deklaracija svih funkcija
 bool initGLFW();
 bool initWindow();
 bool initGLEW();
 void initOpenGLState();
-void renderFloorButtons(const Button& b, bool active, unsigned int shader, unsigned int VAO);
+void renderFloorButtons(const Button& b, bool active, unsigned int texture, unsigned int shader, unsigned int VAO);
+void renderTexturedButton(const Button& b, unsigned int texture, unsigned int shader, unsigned int VAO);
 void renderButton(const Button& b, float r, float g, float bColor, unsigned int shader, unsigned int VAO);
 void renderButtons(unsigned int shader, unsigned int VAO);
 void mainLoop();
@@ -131,11 +137,11 @@ void initOpenGLState() {
     float leftX = -0.75f;
     float rightX = -0.25f;
 
-    float startY = 0.5f;
-    float gap = 0.20f;
+    float startY = 0.75f;
+    float gap = 0.30f;
         
-    float btnW = 0.35f;
-    float btnH = 0.15f;
+    float btnW = 0.22f;
+    float btnH = 0.30f;
 
     int i = 0;
 
@@ -153,61 +159,83 @@ void initOpenGLState() {
     btnVent = { leftX, startY - i * gap, btnW, btnH };
     btnStop = { rightX, startY - i * gap, btnW, btnH }; i++;;
     
-    personY = floorToY(1);
+    personY = floorToY(1) - (personHeight / 2.0f);;
 
 }
 
 
 
-void renderFloorButtons(const Button& b, bool active, unsigned int shader, unsigned int VAO) {
+void renderFloorButtons(const Button& b, bool active, unsigned int texture, unsigned int shader, unsigned int VAO) {
+   
+    int locUseTex = glGetUniformLocation(shader, "uUseTexture");
 
     if (active)
     {
+        glUniform1i(glGetUniformLocation(shader, "uUseTexture"), 0);
+
         glUniform1f(glGetUniformLocation(shader, "uX"), b.x);
         glUniform1f(glGetUniformLocation(shader, "uY"), b.y);
-        glUniform1f(glGetUniformLocation(shader, "uSX"), b.w * 1.1f);
-        glUniform1f(glGetUniformLocation(shader, "uSY"), b.h * 1.1f);
+        glUniform1f(glGetUniformLocation(shader, "uSX"), b.w * 1.01f);
+        glUniform1f(glGetUniformLocation(shader, "uSY"), b.h * 1.01f);
 
         glUniform4f(glGetUniformLocation(shader, "uColor"), 1.0f, 1.0f, 1.0f, 1.0f);
         drawQuad(shader, VAO);
     }
 
-    float cr = 0.85f, cg = 0.85f, cb = 0.90f;
-    renderButton(b, cr, cg, cb, shader, VAO);
-}
+    glUniform1i(locUseTex, 1);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-void renderButton(const Button& b, float r, float g, float bColor, unsigned int shader, unsigned int VAO)
-{
     glUniform1f(glGetUniformLocation(shader, "uX"), b.x);
     glUniform1f(glGetUniformLocation(shader, "uY"), b.y);
     glUniform1f(glGetUniformLocation(shader, "uSX"), b.w);
     glUniform1f(glGetUniformLocation(shader, "uSY"), b.h);
 
-    glUniform4f(glGetUniformLocation(shader, "uColor"), r, g, bColor, 1.0f );
+    glUniform4f(glGetUniformLocation(shader, "uColor"), 1.0f, 1.0f, 1.0f, 1.0f);
     drawQuad(shader, VAO);
-  
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+void renderTexturedButton(const Button& b, unsigned int texture, unsigned int shader, unsigned int VAO)
+{
+    int locUseTex = glGetUniformLocation(shader, "uUseTexture");
+    glUniform1i(locUseTex, 1);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glUniform1f(glGetUniformLocation(shader, "uX"), b.x);
+    glUniform1f(glGetUniformLocation(shader, "uY"), b.y);
+    glUniform1f(glGetUniformLocation(shader, "uSX"), b.w);
+    glUniform1f(glGetUniformLocation(shader, "uSY"), b.h);
+
+    glUniform4f(glGetUniformLocation(shader, "uColor"), 1.0f, 1.0f, 1.0f, 1.0f);
+    drawQuad(shader, VAO);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 
 
 void renderButtons(unsigned int shader, unsigned int VAO)
 {
     float cr = 0.85f, cg = 0.85f, cb = 0.90f;
 
-    renderFloorButtons(btnSU, floorRequested[0], shader, VAO);
-    renderFloorButtons(btnPR, floorRequested[1], shader, VAO);
-    renderFloorButtons(btn1, floorRequested[2], shader, VAO);
-    renderFloorButtons(btn2, floorRequested[3], shader, VAO);
-    renderFloorButtons(btn3, floorRequested[4], shader, VAO);
-    renderFloorButtons(btn4, floorRequested[5], shader, VAO);
-    renderFloorButtons(btn5, floorRequested[6], shader, VAO);
-    renderFloorButtons(btn6, floorRequested[7], shader, VAO);
+    renderFloorButtons(btnSU, floorRequested[0], texFloorButtons[0], shader, VAO);
+    renderFloorButtons(btnPR, floorRequested[1], texFloorButtons[1], shader, VAO);
+    renderFloorButtons(btn1, floorRequested[2], texFloorButtons[2], shader, VAO);
+    renderFloorButtons(btn2, floorRequested[3], texFloorButtons[3], shader, VAO);
+    renderFloorButtons(btn3, floorRequested[4], texFloorButtons[4], shader, VAO);
+    renderFloorButtons(btn4, floorRequested[5], texFloorButtons[5], shader, VAO);
+    renderFloorButtons(btn5, floorRequested[6], texFloorButtons[6], shader, VAO);
+    renderFloorButtons(btn6, floorRequested[7], texFloorButtons[7], shader, VAO);
 
-    float cr2 = 0.85f, cg2 = 0.75f, cb2 = 0.75f;
-
-    renderButton(btnOpen, cr2, cg2, cb2, shader, VAO);
-    renderButton(btnClose, cr2, cg2, cb2, shader, VAO);
-    renderButton(btnStop, cr2, cg2, cb2, shader, VAO);
-    renderButton(btnVent, cr2, cg2, cb2, shader, VAO);
+  
+    renderTexturedButton(btnOpen, texBtnOpen, shader, VAO);
+    renderTexturedButton(btnClose, texBtnClose, shader, VAO);
+    renderTexturedButton(btnStop, texBtnStop, shader, VAO);
+    renderTexturedButton(btnVent, texBtnVent, shader, VAO);
 
 }
 
@@ -570,6 +598,8 @@ void mouseClickCallback(GLFWwindow* window, int button, int action, int mods)
 }
 
 
+
+
 void render() 
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -584,6 +614,7 @@ void render()
     glUniform1f(glGetUniformLocation(quadShader, "uSY"), 2.0f);
 
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.6f, 0.6f, 0.6f, 1.0f);
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
 
     drawQuad(quadShader, VAOquad);
 
@@ -599,6 +630,7 @@ void render()
     glUniform1f(glGetUniformLocation(quadShader, "uSY"), 2.0f);
 
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.1f, 0.1f, 0.1f, 1.0f);
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
 
     drawQuad(quadShader, VAOquad);
 
@@ -615,6 +647,7 @@ void render()
         glUniform1f(glGetUniformLocation(quadShader, "uSY"), 0.02f);
 
         glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.8f, 0.8f, 0.8f, 1.0f);
+        glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
 
         drawQuad(quadShader, VAOquad);
     }
@@ -626,6 +659,7 @@ void render()
     glUniform1f(glGetUniformLocation(quadShader, "uSY"), 2.00f);
 
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.5f, 0.5f, 0.5f, 1.0f);
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
 
     drawQuad(quadShader, VAOquad);
 
@@ -637,6 +671,21 @@ void render()
     glUniform1f(glGetUniformLocation(quadShader, "uSY"), elevatorHeight);
 
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.9f, 0.9f, 0.9f, 1.0f);
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
+
+    drawQuad(quadShader, VAOquad);
+
+   
+
+    //OSOBA 
+
+    glUniform1f(glGetUniformLocation(quadShader, "uX"), personX);
+    glUniform1f(glGetUniformLocation(quadShader, "uY"), personY);
+    glUniform1f(glGetUniformLocation(quadShader, "uSX"), personWidth /2.0f);
+    glUniform1f(glGetUniformLocation(quadShader, "uSY"), personHeight);
+
+    glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.9f , 0.9f, 0.20f, 1.0f);
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
 
     drawQuad(quadShader, VAOquad);
 
@@ -646,7 +695,7 @@ void render()
 
     float leftBase = elevatorX - halfDoor / 2.0f;
     float rightBase = elevatorX + halfDoor / 2.0f;
-  
+
     float leftDoorX = leftBase - doorPos * (halfDoor);
     float rightDoorX = rightBase + doorPos * (halfDoor);
 
@@ -658,6 +707,7 @@ void render()
     glUniform1f(glGetUniformLocation(quadShader, "uSY"), elevatorHeight);
 
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.75f, 0.75f, 0.75f, 1.0f);
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
 
     drawQuad(quadShader, VAOquad);
 
@@ -669,23 +719,23 @@ void render()
     glUniform1f(glGetUniformLocation(quadShader, "uSY"), elevatorHeight);
 
     glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.75f, 0.75f, 0.75f, 1.0f);
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 0);
 
     drawQuad(quadShader, VAOquad);
-
-    //OSOBA 
-
-        glUniform1f(glGetUniformLocation(quadShader, "uX"), personX);
-        glUniform1f(glGetUniformLocation(quadShader, "uY"), personY);
-        glUniform1f(glGetUniformLocation(quadShader, "uSX"), personWidth /2.0f);
-        glUniform1f(glGetUniformLocation(quadShader, "uSY"), personHeight);
-
-        glUniform4f(glGetUniformLocation(quadShader, "uColor"), 0.9f , 0.9f, 0.20f, 1.0f);
-
-        drawQuad(quadShader, VAOquad);
     
+    //POTPIS
 
-   
+    glUniform1i(glGetUniformLocation(quadShader, "uUseTexture"), 1);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texSignature);
 
+    glUniform1f(glGetUniformLocation(quadShader, "uX"), -0.8f);
+    glUniform1f(glGetUniformLocation(quadShader, "uY"), -0.93f);
+    glUniform1f(glGetUniformLocation(quadShader, "uSX"), 0.4f);
+    glUniform1f(glGetUniformLocation(quadShader, "uSY"), 0.4f);
+
+    glUniform4f(glGetUniformLocation(quadShader, "uColor"), 1.0f, 1.0f, 1.0f, 1.0f);
+    drawQuad(quadShader, VAOquad);
 }
 
 float floorToY(int floor)
@@ -710,8 +760,12 @@ void formVAO(float* verticles, size_t size, unsigned int& VAO, unsigned int& VBO
     glBufferData(GL_ARRAY_BUFFER, size, verticles, GL_STATIC_DRAW);
 
     // Atribut 0 (pozicija):
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    // Atribut 1 (tex koordinate):
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2*sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     
 }
@@ -734,22 +788,39 @@ int main()
     if (!initGLEW()) return endProgram("GLEW fail.");
 
 
-    cursorBlack = loadImageToCursor("D:/7.semestar/grafika/github/racunarska-grafika-2D/Resources/cursor_black.png");
-    cursorColor = loadImageToCursor("D:/7.semestar/grafika/github/racunarska-grafika-2D/Resources/cursor_color.png");
+    cursorBlack = loadImageToCursor("Resources/cursor_black.png");
+    cursorColor = loadImageToCursor("Resources/cursor_color.png");
     glfwSetCursor(window, cursorBlack);
 
+    texSignature = loadImageToTexture("Resources/sig.png");
+
+    texFloorButtons[0] = loadImageToTexture("Resources/SU.png");
+    texFloorButtons[1] = loadImageToTexture("Resources/PR.png");
+    texFloorButtons[2] = loadImageToTexture("Resources/1.png");
+    texFloorButtons[3] = loadImageToTexture("Resources/2.png");
+    texFloorButtons[4] = loadImageToTexture("Resources/3.png");
+    texFloorButtons[5] = loadImageToTexture("Resources/4.png");
+    texFloorButtons[6] = loadImageToTexture("Resources/5.png");
+    texFloorButtons[7] = loadImageToTexture("Resources/6.png");
+
+    texBtnOpen = loadImageToTexture("Resources/open.png");
+    texBtnClose = loadImageToTexture("Resources/close.png");
+    texBtnStop = loadImageToTexture("Resources/stop.png");
+    texBtnVent = loadImageToTexture("Resources/vent.png");
 
     float quadVertices[] = {
-    -0.5f,  0.5f, //top left
-    -0.5f, -0.5f, //bottom left
-     0.5f, -0.5f, //bottom right
-     0.5f,  0.5f //top right
+    -0.5f,  0.5f, 0.0f, 1.0f, //top left
+    -0.5f, -0.5f, 0.0f, 0.0f,//bottom left
+     0.5f, -0.5f, 1.0f, 0.0f,//bottom right
+     0.5f,  0.5f, 1.0f, 1.0f //top right
 
     };
 
     
     // SHADERS
     quadShader = createShader("Source/Shaders/quad.vert", "Source/Shaders/quad.frag");
+    glUseProgram(quadShader);
+    glUniform1i(glGetUniformLocation(quadShader, "uTexture"), 0);
 
     // VAO/VBO
     formVAO(quadVertices, sizeof(quadVertices), VAOquad, VBOquad);

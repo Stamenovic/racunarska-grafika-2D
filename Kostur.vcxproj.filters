@@ -35,18 +35,56 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="quad.vert">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
-    <None Include="quad.frag">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
+    <None Include="Source\Shaders\quad.frag" />
+    <None Include="Source\Shaders\quad.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\cursor_black.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\cursor_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\5.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\0.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\close.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\6.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\PR.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\open.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\vent.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\stop.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\SU.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\sig.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
